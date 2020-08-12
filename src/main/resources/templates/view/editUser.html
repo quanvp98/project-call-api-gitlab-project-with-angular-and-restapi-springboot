@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+   <head>
+      <meta charset="UTF-8" />
+      <title>Edit User</title>
+      <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+   </head>
+   <body>
+	<h1>Edit User</h1>
+	<div th:if="${errorMessage}" th:utext="${errorMessage}"
+		style="color: red; font-style: italic;">...</div>
+	<form th:action="@{/user/edit}" method="post" th:object=${user}>
+		<div>
+			<input type="hidden"
+				name="id" th:field = "*{id}" required> </br>
+			<label for="fullname"><b>Fullname</b></label> <input type="text"
+				name="fullname" th:field = "*{fullName}"
+				required> </br>
+			<label for="gender"><b>Gender</b></label> 
+			<input type="radio" name="gender" th:field = "*{gender}" value="male"
+				required> <label>Male</label>
+			<input type="radio" name="gender" th:field = "*{gender}" value="female"
+				required> <label>Female</label><br>
+			<label for="tel"><b>Telephone</b></label> <input type="text"
+				placeholder="Enter Telephone" name="tel" th:field = "*{tel}"
+				required> </br>
+			<label for="address"><b>Address</b></label> <input type="text"
+				placeholder="Enter Address" name="address" th:field = "*{address}"
+				required> </br>
+			<label for="role"><b>Role</b></label> 
+			<input type="radio" name="role" th:field = "*{account.role}" value="ADMIN"
+				required> <label>ADMIN</label>
+			<input type="radio" name="role" th:field = "*{account.role}" value="MEMBER"
+				required> <label>MEMBER</label><br>
+			<button type="submit">Update User</button>
+		</div>
+	</form>
+
+</body>
+    
+</html>

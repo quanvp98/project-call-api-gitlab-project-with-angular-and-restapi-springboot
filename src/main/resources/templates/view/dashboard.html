@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<title>Dashboard</title>
+<link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+<style>
+table {
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+td, th {
+	border: 1px solid #dddddd;
+	text-align: left;
+	padding: 8px;
+}
+
+tr:nth-child(even) {
+	background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+	<a th:href="@{/user/add}"><button>ADD NEW USER</button></a>
+	<h1>List User</h1>	
+	<table>
+		<tr>
+			<th>FullName</th>
+			<th>Gender</th>
+			<th>Address</th>
+			<th>Telephone</th>
+			<th>Username</th>
+			<th>Options</th>
+		</tr>
+		<tr th:each="user : ${users}">
+			<td th:utext="${user.fullName}"></td>
+			<td th:utext="${user.gender}"></td>
+			<td th:utext="${user.address}"></td>
+			<td th:utext="${user.tel}"></td>
+			<td th:utext="${user.account.userName}"></td>
+			<td>
+				<a th:href="@{/user/edit/{id}(id=${user.id})}">Edit</a>|
+				<a th:href="@{/user/delete/{id}(id=${user.id})}">Delete</a>
+			</td>
+		</tr>
+	</table>
+</body>
+
+</html>
