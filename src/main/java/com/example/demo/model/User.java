@@ -1,5 +1,4 @@
 package com.example.demo.model;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,14 +8,18 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Entity
 @Table(name = "user")
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class User {
 	
+	private static final long serialVersionUID = -8091879091924046833L;
+
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private Integer id;
 	
 	@Column(name = "fullname")
 	private String fullName;
@@ -39,7 +42,7 @@ public class User {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public User(int id, String fullName, String gender, String address, String tel, Account account) {
+	public User(Integer id, String fullName, String gender, String address, String tel, Account account) {
 		super();
 		this.id = id;
 		this.fullName = fullName;

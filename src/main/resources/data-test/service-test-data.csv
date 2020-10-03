@@ -1,0 +1,3 @@
+id,fullName,gender,address,tel,userName,password,role
+1,"Nguyen Hong Quan","male","Ha noi","0382739666","quannguyen", "123", "ADMIN"
+2,"Luu Quang Tan", "male", "Thanh hoa", "0382565666","tanluu", "345", "MEMBER"

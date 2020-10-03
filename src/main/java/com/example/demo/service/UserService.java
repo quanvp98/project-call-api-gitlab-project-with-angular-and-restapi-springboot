@@ -4,9 +4,18 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.exceptionhandle.ArgumentNullException;
+import com.example.demo.exceptionhandle.ListEmptyException;
+import com.example.demo.exceptionhandle.LoginFailException;
+import com.example.demo.exceptionhandle.ObjectIsExistException;
+import com.example.demo.exceptionhandle.ObjectNullException;
+import com.example.demo.exceptionhandle.SaveErrorException;
+import com.example.demo.exceptionhandle.UpdateErrorException;
 import com.example.demo.model.Account;
+import com.example.demo.model.JwtResponse;
 import com.example.demo.model.User;
 import com.example.demo.repostory.AccountRepository;
 import com.example.demo.repostory.UserRepository;
@@ -20,43 +29,121 @@ public class UserService {
 	@Autowired 
 	private UserRepository userRepository;
 	
-	public String getAccountByUserNameAndPassword(Account account) {
+	@Value("${role.user}")
+	private String role;
+	
+	public Account getAccountByUserNameAndPassword(Account account) {
+		if (account.getUserName() == null || account.getPassword() == null) {
+			throw new ObjectNullException("Account null");
+		}
 		Account accountFromDb = accountRepository.findByUserNameAndPassword(account.getUserName(), account.getPassword());
 		if (accountFromDb == null) {
-			return "ERROR";
+			throw new LoginFailException();
 		}
-		String role = accountFromDb.getRole();
-		if (role.equals("ADMIN")) return "ADMIN";
-		return "MEMBER";
+		return accountFromDb;
 	}
 	
 	public User getUserByAccount(Account account) {
 		User user = userRepository.findByAccount(account);
+		if (user == null) {
+			throw new ObjectNullException("User has username : " + account.getUserName() + " not exist");
+		}
 		return user;
 	}
 	
-	public User getUserById(int id) {
+	public User getUserById(Integer id) {
+		if (id == null) {
+			throw new ArgumentNullException("ID = null");
+		}
 		Optional<User> user = userRepository.findById(id);
+		if (!user.isPresent()) {
+			throw new ObjectNullException("User has Id : " + String.valueOf(id) + " not exist"); 
+		}
 		return user.get();
 	}
 	
 	public List<User> getAllUser() {
-		return userRepository.findAll();
+		List<User> users = userRepository.findAll();
+		if (users.isEmpty()) {
+			throw new ListEmptyException();
+		}
+		return users;
 	}
 	
-	public void addUser(User user) {
+	public User addUser(User user) {
 		accountRepository.save(user.getAccount());
-		userRepository.save(user);
+		User userFromDb = userRepository.save(user);
+		if (userFromDb == null) {
+			throw new SaveErrorException();
+		}
+		return userFromDb;
 	}
 	
-	public void updateUser(User user) {
-		userRepository.save(user);
+	public User updateUser(User user) {
+		User userFromDb = userRepository.save(user);
+		if (userFromDb == null) {
+			throw new UpdateErrorException();
+		}
+		return userFromDb;
 	}
 	
-	public void deleteUserById(int id) {
+	public Account getAccountByUserName(String userName) {
+		if (userName == null) {
+			throw new ArgumentNullException("UserName = null");
+		}
+		
+		Account account = accountRepository.findById(userName).get();
+		if (account == null) {
+			throw new ObjectNullException("Account have Username : " + userName + " not exist");
+		}
+		return account;
+	}
+	
+	public Boolean deleteUserById(Integer id) {
+		if (id == null) {
+			throw new ArgumentNullException("ID = null");
+		}
+		
 		Optional<User> user = userRepository.findById(id);
+		if (!user.isPresent()) {
+			throw new ObjectNullException("User has Id : " + String.valueOf(id) + " not exist"); 
+		}
 		userRepository.deleteById(id);
-		accountRepository.deleteById(user.get().getAccount().getUserName());
+		
+		String username = user.get().getAccount().getUserName();
+		Optional<Account> account = accountRepository.findById(username);
+		if (!account.isPresent()) {
+			throw new ObjectNullException("User has username : " + username + " not exist");
+		}
+		accountRepository.deleteById(username);
+		
+		return true;
 	}
 	
+	public JwtResponse getInforUserResponse(String userName) {
+		Account account = accountRepository.getOne(userName);
+		User userFromDb = userRepository.findByAccount(account);
+		User user;
+		if (userFromDb == null) {
+			user = null;
+		}
+		else {
+			user = new User(userFromDb.getId(), userFromDb.getFullName(), userFromDb.getGender(), userFromDb.getAddress(),
+			userFromDb.getTel(), null);
+		}
+		return new JwtResponse(null, user, account.getRole());
+	}
+	
+	public Boolean addAccount(Account account) {
+		if (!checkAccountExist(account)) throw new ObjectIsExistException("Username is exist", "Change Username");
+		account.setRole(role);
+		accountRepository.save(account);
+		return true;
+	}
+	
+	private Boolean checkAccountExist(Account account) {
+		Optional<Account> accountFromDb = accountRepository.findById(account.getUserName());
+		if (accountFromDb.isPresent()) return false;
+		return true;
+	}
 }

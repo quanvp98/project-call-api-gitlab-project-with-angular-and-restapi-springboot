@@ -3,79 +3,73 @@ package com.example.demo.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.Account;
+import com.example.demo.model.Comment;
 import com.example.demo.model.User;
+import com.example.demo.service.ProjectService;
 import com.example.demo.service.UserService;
 
-@Controller
-@RequestMapping("/user")
+@RestController
+@CrossOrigin
 public class UserController {
 	
 	@Autowired
 	private UserService userService;
 	
-	@RequestMapping(value = {"/login"}, method = RequestMethod.POST)
-	public String userLogin(Model model, @ModelAttribute(name = "account") Account account) {
-		String check = userService.getAccountByUserNameAndPassword(account);
-		if (check.equals("ERROR")) {
-			model.addAttribute("errorMessage", "Sai thông tin tài khoản hoặc mật khẩu, Vui lòng thử lại !!!");
-			return "login";
-		}
-		if (check.equals("ADMIN")) return "dashboard";
-		return "welcomeMember";
+	@Autowired
+	private ProjectService projectService;
+	
+	@GetMapping(value = {"/users"})
+	public ResponseEntity<List<User>> getAllUser() {
+		return ResponseEntity.status(HttpStatus.OK).body(userService.getAllUser());
 	}
 	
-	@RequestMapping(value = {"/login"}, method = RequestMethod.GET)
-	public String getFormLogin(Model model) {
-		Account account = new Account();
-		model.addAttribute("account", account);
-		return "login";
+	@PutMapping(value = {"/users"})
+	public ResponseEntity<User> editUser(@RequestBody User user) {
+		return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(user));
 	}
 	
-	@RequestMapping(value = {"/dashboard"}, method = RequestMethod.GET)
-	public String getDashboard(Model model) {
-		List<User> users = userService.getAllUser();
-		model.addAttribute("users", users);
-		return "dashboard";
-	}
-	
-	@RequestMapping(value = {"/edit/{id}"}, method = RequestMethod.GET)
-	public String getFormEdit(Model model, @PathVariable int id) {
-		User user = userService.getUserById(id);
-		model.addAttribute("user", user);
-		return "editUser";
-	}
-	
-	@RequestMapping(value = {"/edit"}, method = RequestMethod.POST)
-	public String editUser(Model model, @ModelAttribute(name = "user") User user) {
-		userService.updateUser(user);
-		return "redirect:/user/dashboard";
-	}
-	
-	@RequestMapping(value = {"/delete/{id}"}, method = RequestMethod.GET)
-	public String deleteUser(Model model, @PathVariable int id) {
+	@DeleteMapping(value = {"/users/{id}"})
+	public ResponseEntity deleteUser(@PathVariable Integer id) {
 		userService.deleteUserById(id);
-		return "redirect:/user/dashboard";
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 	}
 	
-	@RequestMapping(value = {"/add"}, method = RequestMethod.GET)
-	public String getFormAdd(Model model) {
-		User user = new User();
-		model.addAttribute("user", user);
-		return "addUser";
+	@PostMapping(value = {"/users"})
+	public ResponseEntity<User> addUser(@RequestBody User user) {
+		return ResponseEntity.status(HttpStatus.OK).body(userService.addUser(user));
 	}
 	
-	@RequestMapping(value = {"/add"}, method = RequestMethod.POST)
-	public String addUser(Model model, @ModelAttribute(name = "user") User user) {
-		userService.addUser(user);
-		return "redirect:/user/dashboard";
+	@GetMapping(value = {"/users/{id}"})
+	public ResponseEntity<User> getUser(@PathVariable Integer id) {
+		return ResponseEntity.status(HttpStatus.OK).body(userService.getUserById(id));
 	}
+	
+	@PostMapping(value = {"/users/comments"})
+	public ResponseEntity<Comment> addComment(@RequestBody Comment comment) {
+		return ResponseEntity.status(HttpStatus.OK).body(projectService.addComment(comment));
+	}
+	
+	@GetMapping(value = {"/projects/{idProject}/comments"})
+	public ResponseEntity<List<Comment>> getCommentsByIdProject(@PathVariable Integer idProject) {
+		return ResponseEntity.status(HttpStatus.OK).body(projectService.getCommentsByIdProject(idProject));
+	}
+	
+	@GetMapping(value = {"/projects/newcomments"})
+	public ResponseEntity<List<String>> getIdProjectsHaveNewComment() {
+		return ResponseEntity.status(HttpStatus.OK).body(projectService.getIdProjectHaveNewComment());
+	} 
+	
 }
